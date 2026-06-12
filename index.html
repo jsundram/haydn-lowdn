@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Haydn String Quartets — Pitch Extremes</title>
+<style>
+:root {
+    /*
+       // quartetlog
+  --color-part-v1: #1ceaf9;
+  --color-part-v2: #01c472;
+  --color-part-va: #007961;
+  --color-part-vc: #003b85;
+
+  --color-part-v1: ;  
+  --color-part-v2: ;
+  --color-part-va: ;
+  --color-part-vc: ;
+  */
+    /* color blind friendly additive-style */
+  --color-part-v1: #3B82F6;  /* Blue */
+  --color-part-v2: #F59E0B;  /* Amber */
+  --color-part-va: #10B981;  /* Green */
+  --color-part-vc: #D946EF;  /* Magenta */
+  --bar-opacity: 0.5;
+  --row-h: 14px;
+  --label-w: 60px;
+  --bg: #fafafa;
+  --fg: #222;
+  --muted: #666;
+  --rule: #d8d8d8;
+  --rule-strong: #b8b8b8;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  padding: 14px;
+  font-size: 12px;
+  line-height: 1.35;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 1000px; margin: 0 auto; }
+
+h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
+.subtitle { color: var(--muted); font-size: 11px; margin: 0; }
+
+.legend-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 10px 0 8px;
+  font-size: 11px;
+  align-items: center;
+}
+.legend { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
+.legend-col { display: flex; flex-direction: column; align-items: stretch; gap: 3px; min-width: 88px; }
+.legend-item {
+  display: flex; align-items: center; gap: 6px; color: #333;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  border: 1px solid transparent;
+  transition: background 0.12s, border-color 0.12s, opacity 0.12s;
+  font: inherit;
+  background: transparent;
+}
+.legend-item:focus-visible { outline: 2px solid #4a8edb; outline-offset: 1px; }
+
+.sort-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+}
+.sort-btn {
+  flex: 1;
+  padding: 2px 4px;
+  border: 1px solid #ccc;
+  background: #fff;
+  border-radius: 3px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 9px;
+  color: #666;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.sort-btn:hover { background: #ececec; }
+.sort-btn.selected {
+  background: #333;
+  color: #fff;
+  border-color: #333;
+}
+.sort-btn:focus-visible { outline: 2px solid #4a8edb; outline-offset: 1px; }
+.legend-item:hover { background: #eee; }
+.legend-item.off { opacity: 0.5; }
+.legend-item.off .swatch { opacity: 0.12; }
+.legend-item.off .name { text-decoration: line-through; text-decoration-thickness: 1px; }
+.swatch { width: 16px; height: 10px; border-radius: 2px; opacity: var(--bar-opacity); display: inline-block; flex-shrink: 0; }
+.sw-v1 { background: var(--color-part-v1); }
+.sw-v2 { background: var(--color-part-v2); }
+.sw-va { background: var(--color-part-va); }
+.sw-vc { background: var(--color-part-vc); }
+.palette-picker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #444;
+}
+.palette-picker select {
+  font: inherit;
+  font-size: 11px;
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+.print-group { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+.print-btn {
+  font: inherit;
+  font-size: 11px;
+  padding: 5px 11px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #333;
+}
+.print-btn:hover { background: #f0f0f0; }
+
+.axis-wrap {
+  position: sticky;
+  top: 0;
+  height: 18px;
+  margin-bottom: 0;
+  background: rgba(250, 250, 250, 0.96);
+  z-index: 10;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.axis-spacer { display: none; }
+.axis-svg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--label-w);
+  right: 0;
+  width: auto;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.opus-group { margin-bottom: 5px; break-inside: avoid; }
+.opus-heading {
+  font-weight: 600;
+  font-size: 10.5px;
+  color: #222;
+  border-bottom: 1px solid var(--rule-strong);
+  padding: 2px 0 1px;
+  margin-bottom: 1px;
+  letter-spacing: 0.02em;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  height: var(--row-h);
+}
+.row.new-quartet { border-top: 1px dotted #e0e0e0; }
+.row-label {
+  width: var(--label-w);
+  flex-shrink: 0;
+  text-align: right;
+  padding-right: 6px;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: #555;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.row-label a { color: inherit; text-decoration: none; }
+.row-label a:hover { color: #0a66c2; text-decoration: underline; }
+@media print {
+  .row-label a { color: inherit !important; text-decoration: none !important; }
+}
+.row-bars {
+  flex: 1;
+  position: relative;
+  height: 100%;
+  cursor: crosshair;
+  -webkit-tap-highlight-color: transparent;
+}
+.row-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+.bar {
+  fill-opacity: var(--bar-opacity);
+  transition: fill-opacity 0.12s;
+  stroke-width: 0.75px;
+  stroke-opacity: 0.7;
+  vector-effect: non-scaling-stroke;
+}
+.bar-v1 { fill: var(--color-part-v1); stroke: var(--color-part-v1); }
+.bar-v2 { fill: var(--color-part-v2); stroke: var(--color-part-v2); }
+.bar-va { fill: var(--color-part-va); stroke: var(--color-part-va); }
+.bar-vc { fill: var(--color-part-vc); stroke: var(--color-part-vc); }
+.grid-line { stroke: var(--rule); stroke-width: 0.5; }
+.grid-line-c { stroke: var(--rule-strong); stroke-width: 0.5; }
+.open-string {
+  stroke: #cccccc;
+  stroke-width: 0.75px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+/* Single background-lines layer behind the grid that spans the whole
+   visualization, so the open-string rules are continuous through opus
+   headings and inter-group gaps. Per-row lines stay in the markup but
+   are hidden on screen (they're used for the multi-column print layout). */
+.vis { position: relative; }
+.bg-lines {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--label-w);
+  right: 0;
+  width: auto;
+  height: auto;
+  pointer-events: none;
+  z-index: 1;
+}
+.row-svg .open-string { display: none; }
+
+@media print {
+  .bg-lines { display: none; }
+  .row-svg .open-string { display: inline; }
+}
+
+/* Pitch labels at bar ends, shown on hover/pin */
+.lbl {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  line-height: 1;
+  padding: 1px 3px;
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 2px;
+  white-space: nowrap;
+  display: none;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  z-index: 5;
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.18);
+}
+/* Darken the part color for readable text against white. color-mix gives a
+   single source of truth — change --color-part-* and labels follow. */
+.lbl.part-v1 { color: color-mix(in srgb, var(--color-part-v1), #000); }
+.lbl.part-v2 { color: color-mix(in srgb, var(--color-part-v2), #000); }
+.lbl.part-va { color: color-mix(in srgb, var(--color-part-va), #000); }
+.lbl.part-vc { color: color-mix(in srgb, var(--color-part-vc), #000); }
+.lbl.lo-out { transform: translate(-100%, -50%); margin-left: -3px; }
+.lbl.hi-out { margin-left: 3px; }
+.lbl.lo-in  { margin-left: 2px; }
+.lbl.hi-in  { transform: translate(-100%, -50%); margin-left: -2px; }
+
+/* Row hover: pop the active bar, leave others unchanged; show its labels */
+.row-bars[data-active="v1"] .bar.bar-v1,
+.row-bars[data-active="v2"] .bar.bar-v2,
+.row-bars[data-active="va"] .bar.bar-va,
+.row-bars[data-active="vc"] .bar.bar-vc { fill-opacity: 1; }
+.row-bars[data-active="v1"] .lbl.part-v1,
+.row-bars[data-active="v2"] .lbl.part-v2,
+.row-bars[data-active="va"] .lbl.part-va,
+.row-bars[data-active="vc"] .lbl.part-vc { display: block; }
+
+/* Legend toggle: hide entire part across grid */
+#grid[data-off~="v1"] .bar.bar-v1 { display: none; }
+#grid[data-off~="v2"] .bar.bar-v2 { display: none; }
+#grid[data-off~="va"] .bar.bar-va { display: none; }
+#grid[data-off~="vc"] .bar.bar-vc { display: none; }
+
+/* Only one part visible — give it the full-hover treatment across all rows */
+#grid[data-only="v1"] .bar.bar-v1,
+#grid[data-only="v2"] .bar.bar-v2,
+#grid[data-only="va"] .bar.bar-va,
+#grid[data-only="vc"] .bar.bar-vc { fill-opacity: 1; }
+#grid[data-only="v1"] .lbl.part-v1,
+#grid[data-only="v2"] .lbl.part-v2,
+#grid[data-only="va"] .lbl.part-va,
+#grid[data-only="vc"] .lbl.part-vc { display: block; }
+
+@media (max-width: 600px) {
+  body { padding: 8px; font-size: 11px; }
+  :root { --label-w: 54px; --row-h: 13px; }
+  h1 { font-size: 15px; }
+  .legend-row { font-size: 10px; gap: 10px; }
+  .print-btn { display: none; }
+}
+
+@media print {
+  @page { size: letter portrait; margin: 6mm; }
+  body { padding: 0; background: #fff; font-size: 8.5px; }
+  .wrap { max-width: none; }
+  h1 { font-size: 11px; margin-bottom: 1px; }
+  .subtitle { font-size: 8px; }
+  .legend-row { margin: 3px 0; font-size: 8px; gap: 10px; }
+  .legend-col { gap: 0; min-width: 0; }
+  .legend-item { padding: 1px 4px; }
+  .swatch { width: 14px; height: 8px; }
+  .print-btn, .sort-row, .palette-picker { display: none; }
+  :root { --label-w: 42px; --row-h: 9px; }
+  .row-label { font-size: 7.5px; padding-right: 3px; }
+  .opus-heading { font-size: 8px; padding: 1px 0 0; margin-bottom: 0; border-bottom-width: 0.5px; }
+  .opus-group { margin-bottom: 2px; }
+  /* The header-level axis is rendered at full page width and would not
+     match the column-scale rows, so we hide it and render a column-scale
+     axis at the top of each print column instead (see #grid.print-cols). */
+  .axis-wrap { display: none; }
+  header { column-span: all; }
+  #grid.print-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0 4mm;
+  }
+  .print-col { min-width: 0; }
+  .print-axis {
+    position: relative;
+    height: 13px;
+    margin-bottom: 2px;
+    border-bottom: 0.25pt solid #ddd;
+  }
+  .print-axis svg {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--label-w);
+    right: 0;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    display: block;
+  }
+  /* opus group breaks etc. — only relevant if grid stays in multicolumn,
+     but harmless under print-cols (CSS grid items don't column-break). */
+  .opus-group { margin-bottom: 1px; }
+  .row { break-inside: avoid; }
+  /* Print honors the on-screen state (which parts are toggled off, sort
+     order, single-part-soloed label view). */
+  .lbl {
+    font-size: 6.5px;
+    padding: 0 2px;
+    box-shadow: none;
+    background: rgba(255, 255, 255, 0.88);
+    border-radius: 2px;
+  }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Haydn String Quartets — Pitch Extremes by Movement</h1>
+  <p class="subtitle">Each row is one movement; bars span the lowest to highest written pitch in each part.</p>
+  <div class="legend-row">
+    <div class="legend">
+      <div class="legend-col">
+        <button type="button" class="legend-item" data-part="vc" role="switch" aria-checked="true"><span class="swatch sw-vc"></span><span class="name">Cello</span></button>
+        <div class="sort-row" role="group" aria-label="Sort by Cello">
+          <button type="button" class="sort-btn" data-part="vc" data-mode="name">name</button>
+          <button type="button" class="sort-btn" data-part="vc" data-mode="range">range</button>
+          <button type="button" class="sort-btn" data-part="vc" data-mode="low">low</button>
+          <button type="button" class="sort-btn" data-part="vc" data-mode="high">high</button>
+        </div>
+      </div>
+      <div class="legend-col">
+        <button type="button" class="legend-item" data-part="va" role="switch" aria-checked="true"><span class="swatch sw-va"></span><span class="name">Viola</span></button>
+        <div class="sort-row" role="group" aria-label="Sort by Viola">
+          <button type="button" class="sort-btn" data-part="va" data-mode="name">name</button>
+          <button type="button" class="sort-btn" data-part="va" data-mode="range">range</button>
+          <button type="button" class="sort-btn" data-part="va" data-mode="low">low</button>
+          <button type="button" class="sort-btn" data-part="va" data-mode="high">high</button>
+        </div>
+      </div>
+      <div class="legend-col">
+        <button type="button" class="legend-item" data-part="v2" role="switch" aria-checked="true"><span class="swatch sw-v2"></span><span class="name">Violin II</span></button>
+        <div class="sort-row" role="group" aria-label="Sort by Violin II">
+          <button type="button" class="sort-btn" data-part="v2" data-mode="name">name</button>
+          <button type="button" class="sort-btn" data-part="v2" data-mode="range">range</button>
+          <button type="button" class="sort-btn" data-part="v2" data-mode="low">low</button>
+          <button type="button" class="sort-btn" data-part="v2" data-mode="high">high</button>
+        </div>
+      </div>
+      <div class="legend-col">
+        <button type="button" class="legend-item" data-part="v1" role="switch" aria-checked="true"><span class="swatch sw-v1"></span><span class="name">Violin I</span></button>
+        <div class="sort-row" role="group" aria-label="Sort by Violin I">
+          <button type="button" class="sort-btn" data-part="v1" data-mode="name">name</button>
+          <button type="button" class="sort-btn" data-part="v1" data-mode="range">range</button>
+          <button type="button" class="sort-btn" data-part="v1" data-mode="low">low</button>
+          <button type="button" class="sort-btn" data-part="v1" data-mode="high">high</button>
+        </div>
+      </div>
+    </div>
+    <div class="palette-picker">
+      <label for="palette-select">Colors</label>
+      <select id="palette-select"></select>
+    </div>
+    <div class="print-group">
+      <button type="button" class="print-btn" data-action="print">Print (1 page)</button>
+      <button type="button" class="print-btn" data-action="png">Export PNG</button>
+    </div>
+  </div>
+  <div class="axis-wrap">
+    <div class="axis-spacer"></div>
+    <svg id="axis" class="axis-svg" preserveAspectRatio="none" aria-hidden="true"></svg>
+  </div>
+</header>
+<div class="vis">
+  <svg id="bg-lines" class="bg-lines" preserveAspectRatio="none" aria-hidden="true"></svg>
+  <main id="grid"></main>
+</div>
+</div>
+
+<script type="text/plain" id="csv-data">movement,V1-hi,V1-lo,V2-hi,V2-lo,VA-hi,VA-lo,VC-hi,VC-lo
+001_0m1,E-6,G3,A-5,G3,E-5,E-3,E-4,E-2
+001_0m2,B-5,G3,D5,G3,D5,C3,B-3,C2
+001_0m3,A6,G3,G5,G3,E-5,D3,E-4,E-2
+001_0m4,E-6,G3,C6,G3,E-5,E-3,D4,E-2
+001_0m5,D6,G3,C6,G3,E-5,E-3,E-4,E-2
+001_1m1,D6,A3,A5,A3,E-5,F3,E-4,F2
+001_1m2,F6,B-3,G5,B-3,E-5,F3,E-4,E-2
+001_1m3,G6,G3,E-5,G3,B-4,E-3,C4,E-2
+001_1m4,C6,F4,F5,A3,E-5,F3,D4,F2
+001_1m5,D6,A3,A-5,B-3,F5,F3,E-4,C2
+001_2m1,E-6,G3,C6,G3,E-5,E-3,E-4,E-2
+001_2m2,E-6,A3,G5,A3,E-5,E-3,E-4,E-2
+001_2m3,F6,B-3,G5,G3,E-5,D3,E-4,F2
+001_2m4,D6,G3,E-5,G3,E-5,C3,C4,C2
+001_2m5,D6,G3,G5,G3,E-5,E-3,E-4,G2
+001_3m1,A6,A3,B5,A3,D5,E3,B3,D2
+001_3m2,D6,G3,A5,C#4,D5,D3,D4,D2
+001_3m3,D6,A3,B5,A3,D5,D3,E4,D2
+001_3m4,D6,C#4,B-5,G3,B-4,C#3,D4,D2
+001_3m5,D6,G#3,G5,A3,E5,D3,E4,D2
+001_4m1,G6,A3,B5,G3,E5,C3,E4,F#2
+001_4m2,F#6,G3,A5,G3,D5,G3,D4,G2
+001_4m3,G6,G3,C6,G3,E5,C3,E4,C2
+001_4m4,D6,G3,G5,G3,D5,D3,D4,D2
+001_4m5,F6,G3,G5,G3,D5,C3,D4,C2
+001_6m1,D6,G3,A5,G3,E5,G3,F4,G2
+001_6m2,E6,C4,B-5,G3,F5,F3,D4,F2
+001_6m3,G6,A3,G5,G3,D5,D3,E4,D2
+001_6m4,C6,G3,C5,G3,D5,C3,D4,C2
+001_6m5,E6,G3,B5,B3,F5,E3,E4,G2
+002_1m1,F#6,C#4,D6,A3,F#5,E3,E4,E2
+002_1m2,E5,A3,E5,A3,B-4,G3,B3,E2
+002_1m3,F#6,A3,A5,A3,E5,D3,E4,D2
+002_1m4,E6,A3,C#6,A3,D5,D3,C#4,E2
+002_1m5,E6,G#3,E6,G#3,E5,E3,F#4,E2
+002_2m1,F#6,B3,B5,G#3,D#5,E3,F#4,E2
+002_2m2,E6,A3,B5,A3,B4,E3,E4,E2
+002_2m3,A6,G#3,A5,A3,C#5,C#3,F#4,D2
+002_2m4,B5,G3,E5,G3,E5,E3,E4,E2
+002_2m5,F#6,A#3,B5,A3,E5,F#3,E4,F#2
+002_4m1,D6,G3,D6,A3,F5,D3,F4,F2
+002_4m2,E6,G3,B-5,G3,D5,C3,D#4,C2
+002_4m3,F6,G3,F5,G3,C5,C3,C4,C2
+002_4m4,F6,G3,F5,G3,D5,C3,E-4,C2
+002_4m5,G6,G3,E6,G3,C5,C3,C4,C2
+002_6m1,F-6,B-3,B-5,G-3,D5,C3,B-3,F2
+002_6m2,D6,B-3,B-5,A3,B-4,D3,B-3,E-2
+002_6m3,E-6,B-3,D5,G3,B-4,E-3,E-3,G2
+002_6m4,D6,E-3,F5,G3,D-5,C3,D4,F2
+002_6m5,D6,B-3,D6,B-3,E-5,F3,D4,A2
+009_1m1,E6,G3,D6,G3,E5,C3,E-4,C2
+009_1m2,F6,G3,A5,G3,G4,C3,D4,C2
+009_1m3,A6,B3,A5,A3,C5,C3,G4,C2
+009_1m4,G6,G3,G5,G3,E5,C3,G4,C2
+009_2m1,B-6,G3,A-5,G3,E-5,D3,E-4,C2
+009_2m2,C6,G3,F5,G3,A-4,D3,E-4,E-2
+009_2m3,A-6,G3,C6,G3,E-5,E-3,A-3,C2
+009_2m4,D7,G3,B-5,G3,D5,D3,E-4,E-2
+009_3m1,F#6,G3,A5,G3,B4,D3,D4,F#2
+009_3m2,D6,D4,B5,G3,B4,F#3,D4,G2
+009_3m3,E6,G3,A5,G3,E-5,C3,E-4,C2
+009_3m4,D6,C#4,G5,A3,D5,D3,G4,D2
+009_4m1,F6,A3,D6,G3,C5,C#3,E4,C2
+009_4m2,G6,A3,G5,G3,A4,D3,C4,D2
+009_4m3,F6,A3,C6,A-3,D5,D3,D4,C2
+009_4m4,F6,G3,B-5,G3,D5,D3,G4,D2
+009_5m1,D6,G3,B-5,G3,E-5,C3,E-4,F2
+009_5m2,D6,G3,B-4,A3,D5,D3,C4,E-2
+009_5m3,B-6,B-3,G5,G3,D5,D3,F4,D2
+009_5m4,C7,G3,B-5,G3,E-5,C3,G4,D2
+009_6m1,F#6,G#3,G#5,G#3,C#5,C#3,E4,E2
+009_6m2,C#6,E4,C5,G#3,A4,E3,E4,E2
+009_6m3,B6,C#4,G#5,A#3,C#5,F#3,E4,E2
+009_6m4,E6,G#3,B5,G#3,D5,G#3,D4,E2
+017_1m1,A6,A3,B5,G#3,C#5,D#3,F#4,D#2
+017_1m2,C#6,B3,A5,B3,D#5,E3,F#4,E2
+017_1m3,D6,A#3,F#5,G3,B4,D#3,G4,E2
+017_1m4,A6,B3,A5,G#3,C#5,D#3,A4,E2
+017_2m1,B-6,G3,A5,G3,E-5,C3,F4,D-2
+017_2m2,D6,C4,A5,G3,D5,E3,F4,C2
+017_2m3,G6,A3,A5,G3,B-4,C3,D4,C2
+017_2m4,A6,G3,A5,G3,D5,C3,F4,C2
+017_3m1,G6,G3,G5,B-3,E-5,E-3,D-4,C2
+017_3m2,A-6,G3,A-5,G3,E-5,D3,F4,E-2
+017_3m3,B-6,G3,A-5,G3,C5,C3,C4,E-2
+017_3m4,B-6,G3,A-5,G3,E-5,E-3,F4,C2
+017_4m1,B-6,G3,A-5,G3,C5,C3,F4,C2
+017_4m2,G6,E-4,G5,B3,D5,C3,G4,C2
+017_4m3,A-6,G3,G5,G3,E-5,D3,E4,E-2
+017_4m4,C7,G3,A-5,G3,D5,C3,E-4,E-2
+017_5m1,G6,G3,B5,G3,C5,D3,E4,D2
+017_5m2,D6,D4,E5,G3,E-5,C3,E-4,D2
+017_5m3,D6,G3,A5,G3,E-5,D3,E-4,F2
+017_5m4,A6,B3,B5,G3,E5,D3,G4,D2
+017_6m1,A6,G#3,D6,G#3,C#5,C3,B#4,C2
+017_6m2,G6,A3,B5,A3,A4,D3,A3,D2
+017_6m3,G6,G3,D6,G3,D5,D3,D4,C#2
+017_6m4,F#6,G3,C6,A3,E5,D3,F#4,D2
+020_1m1,G6,A3,C6,G3,F5,C3,B-4,C2
+020_1m2,D-6,G3,B-5,G3,C5,D3,G4,D2
+020_1m3,C6,G3,E-5,G3,D-5,C3,F4,C2
+020_1m4,E-6,A3,B-5,G3,D5,D-3,G4,C2
+020_2m1,G6,G3,C#6,G3,G5,C3,A4,C2
+020_2m2,G6,G3,C6,G3,G5,C3,G4,C2
+020_2m3,C7,G3,B5,G3,C5,E3,E4,C2
+020_2m4,E6,G3,C6,G3,F5,C3,G4,C2
+020_3m1,G6,G3,D6,G3,E-5,C3,A-4,C2
+020_3m2,D6,G3,B-5,G3,E-5,F3,G4,D2
+020_3m3,G6,G3,G5,G3,F#5,C3,D5,D2
+020_3m4,E-6,G3,C6,G3,E-5,C3,G4,D2
+020_4m1,E6,G3,B5,G3,E5,C3,G4,C2
+020_4m2,G6,G3,D6,G3,F5,C3,B-4,C2
+020_4m3,B5,D4,B4,A3,D5,D3,G4,D2
+020_4m4,E6,G#3,D6,G#3,E5,C#3,G4,D2
+020_5m1,G6,G3,C6,A-3,D-5,C3,F4,C2
+020_5m2,D6,A3,F5,G3,C5,C3,D4,C2
+020_5m3,G6,G3,B-5,A3,C5,D3,D4,E2
+020_5m4,D-6,G3,A-5,G3,D-5,C3,F4,C2
+020_6m1,E6,A3,A5,G#3,E5,E3,F#4,E2
+020_6m2,F#6,G#3,F#5,G#3,E5,E3,B3,D#2
+020_6m3,E6,G#3,B5,A3,A4,C#3,B3,C#2
+020_6m4,E6,A3,B5,G#3,F#5,C#3,F#4,C#2
+033_1m1,E6,A3,D6,A#3,C#5,D3,G4,C#2
+033_1m2,G#6,B3,G#5,A#3,E5,E3,G#4,D2
+033_1m3,A6,G#3,A5,G3,C#5,C#3,A4,C#2
+033_1m4,F#6,A3,E6,A#3,E5,D3,F#4,D2
+033_2m1,F6,G3,B-5,G3,E-5,C3,F4,C2
+033_2m2,A-6,G3,A-5,G3,D5,D3,B-3,G2
+033_2m3,F6,D4,B-5,A3,D5,C3,F4,F2
+033_2m4,E-6,A-3,G5,G3,E-5,D3,E-4,E-2
+033_3m1,G6,G3,C6,G3,E5,E3,A4,C2
+033_3m2,E6,B3,G5,G3,B-3,C3,G3,C2
+033_3m3,F6,A3,E5,G3,B-4,E3,F4,E-2
+033_3m4,F6,D4,B5,G3,E5,D3,G4,E2
+033_4m1,F6,C4,B-5,A3,E5,C3,E-4,C2
+033_4m2,B-5,A4,G-5,A3,B-4,D3,E-4,D-2
+033_4m3,C7,A-3,A-5,G3,B-4,E-3,F4,C2
+033_4m4,B-6,G3,B-5,B-3,E-5,E-3,A-4,C2
+033_5m1,G6,G3,B5,G3,E5,D3,G4,C2
+033_5m2,B-6,G3,G5,G3,D5,D3,D4,C#2
+033_5m3,G6,G3,A5,G3,D5,C#3,D4,D2
+033_5m4,G6,A3,D6,A3,D5,C3,C5,C2
+033_6m1,G6,A3,C6,A3,E5,E3,G4,D2
+033_6m2,G6,G#4,B-5,A3,E-5,A3,A4,C#2
+033_6m3,D6,C#4,A5,A3,E5,C#3,E4,C#2
+033_6m4,A6,A3,D6,A3,E-5,C#3,B-4,D2
+042m1,E6,F#4,B-5,G3,E5,D3,E-4,D2
+042m2,D7,D4,B5,A3,F#5,F3,F#4,D2
+042m3,F6,D4,B-5,G3,D5,D3,G4,C2
+042m4,E6,E4,C6,C#4,D5,E3,D4,D2
+050_1m1,F6,G3,B-5,G3,E-5,D3,A4,C2
+050_1m2,A-6,G3,A-5,G3,F5,C3,A-4,C2
+050_1m3,F6,F4,G5,A3,D5,A3,G4,D2
+050_1m4,A6,G3,D6,A3,F5,D3,D5,C2
+050_2m1,C7,G3,D6,G3,G5,C3,A4,C2
+050_2m2,G6,G3,D6,A3,F5,C3,B-4,C2
+050_2m3,F6,F4,A5,D4,D5,D3,G4,C2
+050_2m4,C7,G3,D6,G3,F5,C3,A4,C2
+050_3m1,B-6,G3,B-5,G3,E-5,C3,G4,C2
+050_3m2,F6,B-3,B-5,G3,D5,C3,G4,D-2
+050_3m3,D6,D4,G-5,G3,D5,E-3,A-4,D2
+050_3m4,G6,G3,B-5,G3,F5,D3,G-4,D2
+050_4m1,D7,A3,D6,G#3,E5,C#3,F#4,B#1
+050_4m2,A6,A3,B5,G#3,D5,C3,D5,C2
+050_4m3,F#6,B#3,B5,A#3,C#5,B#2,F#4,B#1
+050_4m4,G6,G#3,C#6,G#3,E5,B#2,A4,B#1
+050_5m1,G6,G3,D6,G3,G5,C3,A4,C2
+050_5m2,B-6,A3,D6,A3,F5,C3,D5,C2
+050_5m3,F6,A-3,G5,G3,D5,C3,D-4,C2
+050_5m4,G6,G3,B-5,G3,D5,C3,F4,C2
+050_6m1,F6,G#3,B5,G#3,D#5,C#3,F4,C#2
+050_6m2,A6,A3,C6,A-3,F5,D-3,A4,C2
+050_6m3,F6,B3,B5,G#3,E5,D3,G4,D2
+050_6m4,C#7,G3,G5,G3,E5,D3,D4,C#2
+054_1m1,F#6,G3,B5,G3,E-5,C3,A4,C2
+054_1m2,C7,A3,E6,G3,A4,D3,G4,C2
+054_1m3,D6,B3,A5,G3,B4,D3,E4,C2
+054_1m4,G6,G3,B5,G3,E5,C3,G4,C2
+054_2m1,D7,G3,D6,G3,F5,C3,A4,C2
+054_2m2,E-6,G3,D5,G3,A4,D3,A-3,C2
+054_2m3,C7,G3,C6,G3,E5,C3,A4,C2
+054_2m4,F6,G3,A5,G3,D5,C3,F5,C2
+054_3m1,F6,A#3,G#5,G3,C#5,C#3,E4,B#1
+054_3m2,G6,G#3,E5,B3,C5,D3,G4,D#2
+054_3m3,A6,A#3,F#5,A#3,F#5,D#3,G#4,D#2
+054_3m4,D#7,B3,D#6,A#3,D#5,C#3,A4,C2
+055_1m1,A6,G#3,C#6,G3,D5,C#3,F#4,C2
+055_1m2,A6,G#3,B5,G3,F#5,D3,A4,C2
+055_1m3,C#7,A3,B5,G#3,B4,C#3,E4,D2
+055_1m4,F#6,G#3,B5,G#3,F#5,D3,F#4,E2
+055_2m1,C7,A3,F5,G3,D-5,C3,D5,C2
+055_2m2,A6,G3,D6,G3,D-5,C3,F4,C2
+055_2m3,D6,B3,G5,G3,C5,C3,G4,C2
+055_2m4,G6,G3,A5,G3,F5,C3,G4,C2
+055_3m1,G6,G3,B-5,G3,F5,C3,F4,C2
+055_3m2,F6,D4,A-5,G3,B-4,D3,F4,D2
+055_3m3,E-6,B-3,B-5,B-3,B-4,F3,E-4,F2
+055_3m4,C7,D4,D6,G3,E-5,D3,A4,D2
+064_1m1,A6,G3,A5,G3,E-5,C3,A4,C2
+064_1m2,E6,B-3,A-5,G3,F5,D3,F4,C2
+064_1m3,F6,G3,G5,G3,D5,C3,G4,C2
+064_1m4,E6,G3,B-5,G3,E5,C3,F4,C2
+064_2m1,B6,G3,B5,G3,F#5,C#3,D4,B#1
+064_2m2,F#6,A#3,D5,G#3,C#5,C#3,D4,B#1
+064_2m3,B6,G3,G5,A#3,D5,D3,B3,C#2
+064_2m4,B6,G3,D#6,G3,E5,C#3,G4,C#2
+064_3m1,E-6,G3,B-5,G3,E-5,C3,A4,C2
+064_3m2,D-6,G3,G5,G3,C-5,D3,B-3,C2
+064_3m3,E-6,B-3,G5,A3,E-5,D3,F4,D2
+064_3m4,F6,A3,G5,G3,D5,D3,G4,C2
+064_4m1,G6,G3,C6,G3,F#5,C3,A4,C#2
+064_4m2,G6,G3,A5,G3,B4,C3,D4,D2
+064_4m3,G6,G3,G5,G3,C5,E3,F4,C2
+064_4m4,D7,G3,D6,G3,E5,C#3,A4,C2
+064_5m1,G6,B3,C#6,G3,F#5,C#3,G#4,C2
+064_5m2,F#6,G3,F5,G3,D5,E3,G4,C2
+064_5m3,E6,B3,A5,A3,F#5,D3,C4,C#2
+064_5m4,G6,A3,D6,G3,F5,C3,D4,C2
+064_6m1,E-6,G3,D-6,G3,D5,C3,G4,C2
+064_6m2,G6,A3,G5,G3,C5,D3,F4,C2
+064_6m3,E-7,B-3,B-5,G3,D-5,D3,E-4,E-2
+064_6m4,F6,G3,A-5,G3,E-5,C3,F4,E-2
+071_1m1,A6,G3,D6,G3,E-5,C3,A4,C2
+071_1m2,D6,G3,G-5,A3,B-4,D3,F4,C2
+071_1m3,F6,B-3,B-5,A3,D5,D3,F4,D2
+071_1m4,B-6,B3,C6,G3,E-5,C3,A4,C2
+071_2m1,A6,G3,E6,G3,F#5,C#3,A4,D2
+071_2m2,A6,G3,D6,G3,C#5,C3,A4,C2
+071_2m3,D6,G#3,E5,G3,B4,C#3,E4,C#2
+071_2m4,A6,A3,A5,G#3,F#5,C#3,A4,C#2
+071_3m1,G6,G3,A-5,G3,E-5,C3,G4,E-2
+071_3m2,B-6,A-3,E-6,A-3,F5,C3,D4,D-2
+071_3m3,B-6,C4,G5,G3,E-5,D3,C4,C2
+071_3m4,F6,G3,B-5,G3,E-5,D3,G4,C2
+074_1m1,G6,G3,C6,G3,D5,C3,A4,C2
+074_1m2,G6,G3,C6,G3,E5,C3,B4,C2
+074_1m3,G6,G3,F5,G3,D5,C3,E-4,C2
+074_1m4,F6,G3,B-5,G3,E5,C3,G4,B1
+074_2m1,G6,G3,E6,G3,E5,D3,G4,C2
+074_2m2,G6,G3,E6,G3,E5,D3,G4,C2
+074_2m3,G6,G3,E6,G3,E5,D3,G4,C2
+074_2m4,G6,G3,E6,G3,E5,D3,G4,C2
+074_3m1,G6,G3,A5,G3,E-5,C3,F4,C2
+074_3m2,E6,G3,F#5,G#3,B4,D3,A4,C2
+074_3m3,E6,A3,C6,A3,E-5,C3,E-4,D2
+074_3m4,B-6,G3,D6,G3,E5,C#3,F4,C2
+076_1m1,G6,G3,D6,G3,D5,D3,A4,C2
+076_1m2,E7,G3,D6,G3,C5,C3,G4,C2
+076_1m3,G6,G3,G5,A3,D5,F#3,D4,D2
+076_1m4,B-6,A-3,C6,G3,E5,C3,E-4,C2
+076_2m1,B-6,G3,D6,G3,F5,C3,G4,C2
+076_2m2,A6,A3,F5,A3,B4,E-3,D4,C2
+076_2m3,D7,D4,B5,A3,B4,C#3,D4,C#2
+076_2m4,F6,G3,D6,G3,F5,C3,G4,C2
+076_3m1,C7,G3,B5,G3,F#5,C3,A-4,C2
+076_3m2,G6,G3,D6,G3,G5,C3,B4,D2
+076_3m3,F6,G3,C6,G3,D5,D3,F4,C#2
+076_3m4,F6,A3,E-6,G3,F5,C3,A4,C2
+076_4m1,A-6,G3,C6,G3,E-5,C3,C5,C2
+076_4m2,C7,G3,B-5,G3,C5,C3,E4,C2
+076_4m3,F6,B-3,G5,A3,C5,C3,E-4,C2
+076_4m4,B-6,G3,A-5,A3,E-5,C3,G-4,C2
+076_5m1,F7,G#3,E6,G3,F#5,C3,F4,C2
+076_5m2,F#6,B3,C#6,G3,D#5,B#2,G#4,B#1
+076_5m3,E6,A3,B5,A3,B4,D3,E4,D2
+076_5m4,E7,A3,D6,G#3,F#5,D3,G4,D2
+076_6m1,G6,G3,B-5,G3,E-5,C3,G4,C2
+076_6m2,E6,B-3,B5,G3,E5,C#3,F#4,E-2
+076_6m3,A-6,G3,A-5,G3,E-5,E-3,A-4,C2
+076_6m4,A-6,G3,B-5,G3,F5,D3,B-4,C2
+077_1m1,G6,G3,D6,G3,E5,C3,G4,C2
+077_1m2,B-6,G3,A-5,G3,E-5,C3,B-4,C2
+077_1m3,D7,G3,D6,G3,G5,D3,A4,C2
+077_1m4,C7,G3,D6,G3,G5,C#3,C5,C#2
+077_2m1,G6,G3,D6,G3,A5,C3,A4,C2
+077_2m2,F6,B3,F5,G3,F5,C3,F4,C2
+077_2m3,G6,G#3,A5,G#3,F#5,C#3,B4,C#2
+077_2m4,C7,G3,B-5,G3,D5,C3,G4,C2
+103m2,G6,B-3,E-6,G3,G5,C3,G4,C2
+103m3,A6,A3,B-5,G#3,B-4,E3,E4,C#2
+</script>
+
+<script>
+(function () {
+  const CSV = document.getElementById('csv-data').textContent;
+
+  const MIDI_LOW = 36;   // C2  = (2+1)*12 + 0
+  const MIDI_HIGH = 101; // F7  = (7+1)*12 + 5
+  const RANGE = MIDI_HIGH - MIDI_LOW;
+  const SVG_W = 1000;
+  const ROW_VB_H = 20;
+
+  const PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+
+  function parseNote(s) {
+    if (!s) return null;
+    const m = /^([A-G])([#-]?)(\d+)$/.exec(s.trim());
+    if (!m) return null;
+    let pc = PC[m[1]];
+    if (m[2] === '#') pc += 1;
+    else if (m[2] === '-') pc -= 1;
+    const oct = parseInt(m[3], 10);
+    return (oct + 1) * 12 + pc;
+  }
+
+  function xFor(midi) {
+    return ((midi - MIDI_LOW) / RANGE) * SVG_W;
+  }
+
+  // Display helper: CSV uses "-" for flat and "#" for sharp; render as ♭/♯.
+  function fmtNote(s) {
+    return s ? s.replace('-', '♭').replace('#', '♯') : s;
+  }
+
+  // Color palettes. The dropdown writes the selected palette's values to
+  // the --color-part-* CSS variables; every other color in the document
+  // either inherits from them (CSS) or is recomputed from PART_COLORS (JS).
+  // Coolers.co links are paste-in previews of each palette (v1 v2 va vc).
+  const PALETTES = {
+    musiclog:     { label: 'MusicLog',       // https://coolors.co/1ceaf9-01c472-007961-003b85
+                    v1: '#1ceaf9', v2: '#01c472', va: '#007961', vc: '#003b85' },
+    cb_additive:  { label: 'CB Additive',    // https://coolors.co/3b82f6-f59e0b-10b981-d946ef
+                    v1: '#3B82F6', v2: '#F59E0B', va: '#10B981', vc: '#D946EF' },
+    wood_strings: { label: 'Wood & Strings', // https://coolors.co/c65d3b-d8a031-4f8a5b-446b9e
+                    v1: '#C65D3B', v2: '#D8A031', va: '#4F8A5B', vc: '#446B9E' },
+    tol:          { label: 'Tol',            // https://coolors.co/4477aa-ee7733-228833-cc3311
+                    v1: '#4477AA', v2: '#EE7733', va: '#228833', vc: '#CC3311' },
+  };
+  const DEFAULT_PALETTE = 'cb_additive';
+
+  // Open strings for Cello (C2 G2 D3 A3), Viola (C3 G3 D4 A4), Violin (G3 D4 A4 E5),
+  // unique pitches. The `parts` list is in canonical paint order (vc → va → v2 → v1)
+  // so the blended color matches the actual on-screen overlap.
+  const OPEN_STRINGS = [
+    { midi: 36, name: 'C2', parts: ['vc'] },
+    { midi: 43, name: 'G2', parts: ['vc'] },
+    { midi: 48, name: 'C3', parts: ['va'] },
+    { midi: 50, name: 'D3', parts: ['vc'] },
+    { midi: 55, name: 'G3', parts: ['va', 'v2', 'v1'] },
+    { midi: 57, name: 'A3', parts: ['vc'] },
+    { midi: 62, name: 'D4', parts: ['va', 'v2', 'v1'] },
+    { midi: 69, name: 'A4', parts: ['va', 'v2', 'v1'] },
+    { midi: 76, name: 'E5', parts: ['v2', 'v1'] },
+  ];
+
+  // Resolve CSS-var part colors once, then blend each open-string's color the
+  // same way the SVG composites bars: alpha 0.5 over white in paint order.
+  function readPartColor(p) {
+    return getComputedStyle(document.documentElement)
+      .getPropertyValue(`--color-part-${p}`).trim();
+  }
+  const PART_COLORS = { v1: readPartColor('v1'), v2: readPartColor('v2'), va: readPartColor('va'), vc: readPartColor('vc') };
+  function hexToRgb(h) {
+    h = h.replace('#', '');
+    if (h.length === 3) h = h.split('').map(c => c + c).join('');
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  }
+  function rgbToHex([r, g, b]) {
+    return '#' + [r, g, b].map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
+  }
+  function blendOverWhite(parts) {
+    let r = 255, g = 255, b = 255;
+    for (const p of parts) {
+      const [pr, pg, pb] = hexToRgb(PART_COLORS[p]);
+      r = 0.5 * pr + 0.5 * r;
+      g = 0.5 * pg + 0.5 * g;
+      b = 0.5 * pb + 0.5 * b;
+    }
+    return rgbToHex([r, g, b]);
+  }
+  for (const s of OPEN_STRINGS) s.color = blendOverWhite(s.parts);
+
+  function parseId(id) {
+    let m = /^(\d+)_(\d+)m(\d+)$/.exec(id);
+    if (m) return { op: +m[1], no: +m[2], mv: +m[3] };
+    m = /^(\d+)m(\d+)$/.exec(id);
+    if (m) return { op: +m[1], no: null, mv: +m[2] };
+    return null;
+  }
+
+  // Parse CSV
+  const lines = CSV.trim().split(/\r?\n/);
+  const headers = lines[0].split(',');
+  const records = lines.slice(1).map(line => {
+    const cells = line.split(',');
+    const o = {};
+    headers.forEach((h, i) => (o[h] = cells[i]));
+    o._id = parseId(o.movement);
+    return o;
+  }).filter(r => r._id);
+
+  // Render shared pitch axis — colored labels. The vertical rules themselves
+  // are drawn in a single background-layer SVG (#bg-lines) that spans the
+  // whole grid, so they're continuous through opus headings and gaps.
+  const axis = document.getElementById('axis');
+  axis.setAttribute('viewBox', `0 0 ${SVG_W} 18`);
+  function renderAxisLabels() {
+    let html = '';
+    for (const s of OPEN_STRINGS) {
+      const x = xFor(s.midi);
+      html +=
+        `<line x1="${x.toFixed(2)}" y1="8" x2="${x.toFixed(2)}" y2="18" class="open-string"/>` +
+        `<text x="${x.toFixed(2)}" y="7" font-size="8" font-weight="600" fill="${s.color}" text-anchor="middle">${s.name}</text>`;
+    }
+    axis.innerHTML = html;
+  }
+
+  // Continuous full-height rules behind the grid (palette-independent)
+  const bgLines = document.getElementById('bg-lines');
+  bgLines.setAttribute('viewBox', `0 0 ${SVG_W} 100`);
+  let bgHTML = '';
+  for (const s of OPEN_STRINGS) {
+    const x = xFor(s.midi);
+    bgHTML += `<line x1="${x.toFixed(2)}" y1="0" x2="${x.toFixed(2)}" y2="100" class="open-string"/>`;
+  }
+  bgLines.innerHTML = bgHTML;
+
+  const grid = document.getElementById('grid');
+  const legendEl = document.querySelector('.legend');
+
+  // ---- State ----
+  const hidden = new Set();
+  let sortMode = 'name';   // 'name' | 'high' | 'range'
+  let sortPart = null;     // 'v1' | 'v2' | 'va' | 'vc'  (ignored when sortMode === 'name')
+  let pinnedRow = null;
+  let pinnedPart = null;
+
+  const PART_KEYS = {
+    v1: ['V1-hi', 'V1-lo'],
+    v2: ['V2-hi', 'V2-lo'],
+    va: ['VA-hi', 'VA-lo'],
+    vc: ['VC-hi', 'VC-lo'],
+  };
+
+  // ---- Sort ----
+  function sortKey(r) {
+    if (sortMode === 'name') return 0;
+    const [hiK, loK] = PART_KEYS[sortPart];
+    const hi = parseNote(r[hiK]);
+    const lo = parseNote(r[loK]);
+    if (sortMode === 'high') return hi === null ? -Infinity : hi;
+    if (sortMode === 'low')  return lo === null ?  Infinity : lo;
+    // range — needs both endpoints
+    if (hi === null || lo === null) return -Infinity;
+    return hi - lo;
+  }
+
+  function sortedRecords() {
+    if (sortMode === 'name') return records.slice();
+    // 'low' is ascending (lowest pitch first); the rest are descending.
+    const ascending = sortMode === 'low';
+    return records.slice().sort((a, b) =>
+      ascending ? sortKey(a) - sortKey(b) : sortKey(b) - sortKey(a)
+    );
+  }
+
+  // ---- Row rendering ----
+  function rowHTML(r, label, newQ) {
+    const parts = [
+      ['vc', r['VC-lo'], r['VC-hi']],
+      ['va', r['VA-lo'], r['VA-hi']],
+      ['v2', r['V2-lo'], r['V2-hi']],
+      ['v1', r['V1-lo'], r['V1-hi']],
+    ];
+    let bars = '';
+    let labels = '';
+    for (const [p, lo, hi] of parts) {
+      const loM = parseNote(lo);
+      const hiM = parseNote(hi);
+      if (loM === null || hiM === null) continue;
+      const minM = Math.min(loM, hiM);
+      const maxM = Math.max(loM, hiM);
+      const x1 = xFor(minM);
+      const x2 = xFor(maxM);
+      const w = Math.max(1.5, x2 - x1);
+      bars += `<rect class="bar bar-${p}" x="${x1.toFixed(2)}" y="1" width="${w.toFixed(2)}" height="${ROW_VB_H - 2}"/>`;
+
+      const loPct = ((minM - MIDI_LOW) / RANGE) * 100;
+      const hiPct = ((maxM - MIDI_LOW) / RANGE) * 100;
+      const loText = fmtNote(loM <= hiM ? lo : hi);
+      const hiText = fmtNote(loM <= hiM ? hi : lo);
+      const loCls = loPct < 8 ? 'lo-in' : 'lo-out';
+      const hiCls = hiPct > 92 ? 'hi-in' : 'hi-out';
+      labels +=
+        `<span class="lbl part-${p} ${loCls}" style="left:${loPct.toFixed(2)}%">${loText}</span>` +
+        `<span class="lbl part-${p} ${hiCls}" style="left:${hiPct.toFixed(2)}%">${hiText}</span>`;
+    }
+
+    // Open-string lines drawn after the bars group, so they overlay bars subtly
+    let strings = '';
+    for (const s of OPEN_STRINGS) {
+      const x = xFor(s.midi);
+      strings += `<line x1="${x.toFixed(2)}" y1="0" x2="${x.toFixed(2)}" y2="${ROW_VB_H}" class="open-string"/>`;
+    }
+
+    const url = r._id.no !== null
+      ? `https://quartetroulette.com/haydn-opus-${r._id.op}-${r._id.no}/`
+      : `https://quartetroulette.com/haydn-opus-${r._id.op}/`;
+
+    return `<div class="row${newQ ? ' new-quartet' : ''}">` +
+      `<div class="row-label"><a href="${url}" target="_blank" rel="noopener" title="${r.movement}">${label}</a></div>` +
+      `<div class="row-bars">` +
+      `<svg class="row-svg" viewBox="0 0 ${SVG_W} ${ROW_VB_H}" preserveAspectRatio="none" aria-hidden="true">` +
+        `<g class="bars">${bars}</g>` +
+        strings +
+      `</svg>` +
+      labels +
+      `</div></div>`;
+  }
+
+  function render() {
+    grid.dataset.sortMode = sortMode;
+    const recs = sortedRecords();
+    let html = '';
+
+    if (sortMode === 'name') {
+      // Original opus-grouped layout with quartet·movement labels
+      let curOp = null;
+      let groupRows = [];
+      const flushGroup = () => {
+        if (curOp === null) return;
+        html += `<section class="opus-group"><div class="opus-heading">Op. ${curOp}</div>`;
+        let lastNo = null;
+        let first = true;
+        for (const r of groupRows) {
+          const newQ = r._id.no !== lastNo && !first;
+          lastNo = r._id.no;
+          first = false;
+          const label = r._id.no !== null
+            ? `${r._id.no}·${r._id.mv}`
+            : `${r._id.mv}`;
+          html += rowHTML(r, label, newQ);
+        }
+        html += `</section>`;
+      };
+      for (const r of recs) {
+        if (r._id.op !== curOp) {
+          flushGroup();
+          curOp = r._id.op;
+          groupRows = [];
+        }
+        groupRows.push(r);
+      }
+      flushGroup();
+    } else {
+      // Flat layout with op-no-mv labels (no opus headings)
+      for (const r of recs) {
+        const label = r._id.no !== null
+          ? `${r._id.op}-${r._id.no}-${r._id.mv}`
+          : `${r._id.op}-${r._id.mv}`;
+        html += rowHTML(r, label, false);
+      }
+    }
+
+    // Replacing innerHTML invalidates any pin reference
+    pinnedRow = null;
+    pinnedPart = null;
+    grid.innerHTML = html;
+    grid.querySelectorAll('.row-bars').forEach(attachRowHandlers);
+  }
+
+  // ---- Hit-testing (snaps to nearest visible part) ----
+  const PART_CENTERS = [
+    ['v1', 0.125],
+    ['v2', 0.375],
+    ['va', 0.625],
+    ['vc', 0.875],
+  ];
+
+  function partAt(rb, clientY) {
+    const rect = rb.getBoundingClientRect();
+    const y = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+    let best = null;
+    let bestD = Infinity;
+    for (const [p, c] of PART_CENTERS) {
+      if (hidden.has(p)) continue;
+      const d = Math.abs(c - y);
+      if (d < bestD) { bestD = d; best = p; }
+    }
+    return best;
+  }
+
+  // Canonical paint order: cello at the bottom, V1 on top.
+  const PAINT_ORDER = ['vc', 'va', 'v2', 'v1'];
+
+  function setActive(rb, part) {
+    rb.dataset.active = part;
+    const rect = rb.querySelector(`rect.bar-${part}`);
+    if (rect && rect.parentNode.lastElementChild !== rect) {
+      rect.parentNode.appendChild(rect);
+    }
+  }
+
+  // Drop the active state AND put the bars back in their original z-order,
+  // so the overlap blend looks the same as it did before the hover.
+  function clearActive(rb) {
+    if (!rb || !rb.dataset.active) return;
+    delete rb.dataset.active;
+    const barsGroup = rb.querySelector('.row-svg .bars');
+    if (!barsGroup) return;
+    for (const p of PAINT_ORDER) {
+      const rect = barsGroup.querySelector(`rect.bar-${p}`);
+      if (rect) barsGroup.appendChild(rect);
+    }
+  }
+
+  function attachRowHandlers(rb) {
+    rb.addEventListener('pointermove', e => {
+      if (e.pointerType !== 'mouse') return;
+      if (pinnedRow === rb) return;
+      if (pinnedRow) { clearActive(rb); return; }
+      const part = partAt(rb, e.clientY);
+      if (!part) { clearActive(rb); return; }
+      if (rb.dataset.active !== part) {
+        clearActive(rb);
+        setActive(rb, part);
+      }
+    });
+
+    rb.addEventListener('pointerleave', () => {
+      if (rb === pinnedRow) return;
+      clearActive(rb);
+    });
+
+    rb.addEventListener('click', e => {
+      e.stopPropagation();
+      const part = partAt(rb, e.clientY);
+      if (!part) return;
+      if (pinnedRow === rb && pinnedPart === part) {
+        clearActive(rb);
+        pinnedRow = null;
+        pinnedPart = null;
+        return;
+      }
+      if (pinnedRow && pinnedRow !== rb) clearActive(pinnedRow);
+      pinnedRow = rb;
+      pinnedPart = part;
+      clearActive(rb);
+      setActive(rb, part);
+    });
+  }
+
+  // ---- Legend toggles ----
+  function syncOff() {
+    const arr = Array.from(hidden);
+    if (arr.length) grid.dataset.off = arr.join(' ');
+    else grid.removeAttribute('data-off');
+    const visible = ['v1', 'v2', 'va', 'vc'].filter(p => !hidden.has(p));
+    if (visible.length === 1) grid.dataset.only = visible[0];
+    else grid.removeAttribute('data-only');
+  }
+  legendEl.querySelectorAll('.legend-item').forEach(item => {
+    const part = item.dataset.part;
+    item.addEventListener('click', e => {
+      e.stopPropagation();
+      if (hidden.has(part)) {
+        hidden.delete(part);
+        item.classList.remove('off');
+        item.setAttribute('aria-checked', 'true');
+      } else {
+        hidden.add(part);
+        item.classList.add('off');
+        item.setAttribute('aria-checked', 'false');
+      }
+      syncOff();
+    });
+  });
+
+  // ---- Sort buttons ----
+  function updateSortButtonsUI() {
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('selected'));
+    if (sortMode === 'name') {
+      document.querySelectorAll('.sort-btn[data-mode="name"]').forEach(b => b.classList.add('selected'));
+    } else {
+      const btn = document.querySelector(`.sort-btn[data-part="${sortPart}"][data-mode="${sortMode}"]`);
+      if (btn) btn.classList.add('selected');
+    }
+  }
+  document.querySelectorAll('.sort-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      sortMode = btn.dataset.mode;
+      sortPart = btn.dataset.part;
+      updateSortButtonsUI();
+      render();
+    });
+  });
+
+  // ---- Document click clears pin ----
+  document.addEventListener('click', e => {
+    if (pinnedRow && !pinnedRow.contains(e.target)) {
+      clearActive(pinnedRow);
+      pinnedRow = null;
+      pinnedPart = null;
+    }
+  });
+
+  // ---- Print / Export buttons ----
+  document.querySelectorAll('.print-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.action === 'png') exportPNG();
+      else window.print();
+    });
+  });
+
+  // ---- Print: split rows into 3 explicit columns, each with its own
+  //      column-scale axis. CSS multicolumn would auto-flow rows but the
+  //      header-level axis can't reasonably be replicated per column.
+  let savedPrintHTML = null;
+
+  function axisSVGForPrint() {
+    let parts = '';
+    for (const s of OPEN_STRINGS) {
+      const x = xFor(s.midi);
+      parts += `<line x1="${x.toFixed(2)}" y1="8" x2="${x.toFixed(2)}" y2="18" class="open-string"/>` +
+               `<text x="${x.toFixed(2)}" y="7" font-size="8" font-weight="600" fill="${s.color}" text-anchor="middle">${s.name}</text>`;
+    }
+    return `<div class="print-axis"><svg viewBox="0 0 ${SVG_W} 18" preserveAspectRatio="none" aria-hidden="true">${parts}</svg></div>`;
+  }
+
+  function buildPrintColumns() {
+    const recs = sortedRecords();
+    const per = Math.ceil(recs.length / 3);
+    let html = '';
+    for (let c = 0; c < 3; c++) {
+      const start = c * per;
+      const end = Math.min((c + 1) * per, recs.length);
+      if (start >= end) break;
+      html += `<div class="print-col">${axisSVGForPrint()}`;
+      if (sortMode === 'name') {
+        let curOp = null;
+        let groupRows = [];
+        const flush = () => {
+          if (curOp === null) return;
+          html += `<section class="opus-group"><div class="opus-heading">Op. ${curOp}</div>`;
+          let lastNo = null, first = true;
+          for (const r of groupRows) {
+            const newQ = r._id.no !== lastNo && !first;
+            lastNo = r._id.no; first = false;
+            const label = r._id.no !== null ? `${r._id.no}·${r._id.mv}` : `${r._id.mv}`;
+            html += rowHTML(r, label, newQ);
+          }
+          html += `</section>`;
+        };
+        for (let i = start; i < end; i++) {
+          const r = recs[i];
+          if (r._id.op !== curOp) { flush(); curOp = r._id.op; groupRows = []; }
+          groupRows.push(r);
+        }
+        flush();
+      } else {
+        for (let i = start; i < end; i++) {
+          const r = recs[i];
+          const label = r._id.no !== null
+            ? `${r._id.op}-${r._id.no}-${r._id.mv}`
+            : `${r._id.op}-${r._id.mv}`;
+          html += rowHTML(r, label, false);
+        }
+      }
+      html += `</div>`;
+    }
+    return html;
+  }
+
+  window.addEventListener('beforeprint', () => {
+    // Drop any active hover so the PDF doesn't capture it.
+    document.querySelectorAll('.row-bars[data-active]').forEach(clearActive);
+    pinnedRow = null;
+    pinnedPart = null;
+    // Rebuild grid into 3 explicit columns with per-column axes.
+    if (savedPrintHTML === null) savedPrintHTML = grid.innerHTML;
+    grid.classList.add('print-cols');
+    grid.innerHTML = buildPrintColumns();
+  });
+
+  window.addEventListener('afterprint', () => {
+    if (savedPrintHTML !== null) {
+      grid.classList.remove('print-cols');
+      grid.innerHTML = savedPrintHTML;
+      grid.querySelectorAll('.row-bars').forEach(attachRowHandlers);
+      savedPrintHTML = null;
+    }
+  });
+
+  // ---- PNG export (single tall image, matches current sort/toggle state) ----
+  function exportPNG() {
+    const PR = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+    const WIDTH = 1200;
+    const PAD = 16;
+    const LABEL_W = 72;
+    const ROW_H = 14;
+    const AXIS_H = 26;
+    const OPUS_H = 20;
+
+    // Pull from PART_COLORS (resolved from --color-part-* CSS vars at load
+    // time) so the PNG matches the on-screen palette. Label color mirrors
+    // the .lbl.part-* CSS rule (color-mix with black at 50%).
+    const COLORS = { v1: PART_COLORS.v1, v2: PART_COLORS.v2, va: PART_COLORS.va, vc: PART_COLORS.vc };
+    function darkenForLabel(hex) {
+      const [r, g, b] = hexToRgb(hex);
+      return rgbToHex([r * 0.5, g * 0.5, b * 0.5]);
+    }
+    const LABEL_COLORS = {
+      v1: darkenForLabel(COLORS.v1),
+      v2: darkenForLabel(COLORS.v2),
+      va: darkenForLabel(COLORS.va),
+      vc: darkenForLabel(COLORS.vc),
+    };
+    const PART_NAMES = { vc: 'Cello', va: 'Viola', v2: 'Violin II', v1: 'Violin I' };
+    const PART_ORDER = ['vc', 'va', 'v2', 'v1'];
+    const FONT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Helvetica Neue", Arial, sans-serif';
+
+    const recs = sortedRecords();
+    const visibleParts = PART_ORDER.filter(p => !hidden.has(p));
+    const onlyPart = visibleParts.length === 1 ? visibleParts[0] : null;
+
+    // Header takes: title (24) + subtitle (22) + legend (22) + bottom gap (6)
+    const HEADER_H = PAD + 24 + 22 + 22 + 6;
+
+    let totalH = HEADER_H + AXIS_H + 6;
+    if (sortMode === 'name') {
+      let curOp = null;
+      for (const r of recs) {
+        if (r._id.op !== curOp) { totalH += OPUS_H; curOp = r._id.op; }
+        totalH += ROW_H;
+      }
+    } else {
+      totalH += ROW_H * recs.length;
+    }
+    totalH += PAD;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(WIDTH * PR);
+    canvas.height = Math.round(totalH * PR);
+    const ctx = canvas.getContext('2d');
+    ctx.scale(PR, PR);
+
+    // background
+    ctx.fillStyle = '#fafafa';
+    ctx.fillRect(0, 0, WIDTH, totalH);
+
+    // bar x-mapping
+    const barsX = PAD + LABEL_W;
+    const barsW = WIDTH - barsX - PAD;
+    const xFor = midi => barsX + ((midi - MIDI_LOW) / RANGE) * barsW;
+
+    let y = PAD;
+    ctx.textBaseline = 'top';
+    ctx.textAlign = 'left';
+
+    // title
+    ctx.fillStyle = '#222';
+    ctx.font = `600 17px ${FONT}`;
+    ctx.fillText('Haydn String Quartets — Pitch Extremes by Movement', PAD, y);
+    y += 24;
+
+    // subtitle
+    ctx.fillStyle = '#666';
+    ctx.font = `11px ${FONT}`;
+    ctx.fillText('Each row is one movement; bars span the lowest to highest written pitch in each part.', PAD, y);
+    y += 22;
+
+    // legend (visible parts only)
+    ctx.font = `11px ${FONT}`;
+    let lx = PAD;
+    for (const p of PART_ORDER) {
+      if (hidden.has(p)) continue;
+      ctx.fillStyle = COLORS[p];
+      ctx.globalAlpha = 0.5;
+      ctx.fillRect(lx, y, 16, 10);
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#333';
+      ctx.fillText(PART_NAMES[p], lx + 22, y);
+      lx += 22 + ctx.measureText(PART_NAMES[p]).width + 18;
+    }
+    y += 22 + 6;
+
+    // axis — colored labels with a gray rule continuing down through the
+    // post-axis gap so it meets the per-row lines without a break.
+    ctx.font = `600 9px ${FONT}`;
+    ctx.strokeStyle = '#cccccc';
+    ctx.lineWidth = 0.75;
+    ctx.textAlign = 'center';
+    const POST_AXIS_GAP = 6;
+    for (const s of OPEN_STRINGS) {
+      const x = xFor(s.midi);
+      ctx.beginPath();
+      ctx.moveTo(x, y + 12);
+      ctx.lineTo(x, y + AXIS_H + POST_AXIS_GAP);
+      ctx.stroke();
+      ctx.fillStyle = s.color;
+      ctx.fillText(s.name, x, y);
+    }
+    ctx.textAlign = 'left';
+    y += AXIS_H + POST_AXIS_GAP;
+
+    // rows
+    const isNameSort = sortMode === 'name';
+    let curOp = null;
+    for (const r of recs) {
+      if (isNameSort && r._id.op !== curOp) {
+        curOp = r._id.op;
+        ctx.fillStyle = '#222';
+        ctx.font = `600 11px ${FONT}`;
+        ctx.textBaseline = 'top';
+        ctx.textAlign = 'left';
+        ctx.fillText('Op. ' + curOp, PAD, y + 4);
+        ctx.strokeStyle = '#b8b8b8';
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(PAD, y + OPUS_H - 1);
+        ctx.lineTo(WIDTH - PAD, y + OPUS_H - 1);
+        ctx.stroke();
+        y += OPUS_H;
+      }
+
+      const label = isNameSort
+        ? (r._id.no !== null ? `${r._id.no}·${r._id.mv}` : `${r._id.mv}`)
+        : (r._id.no !== null ? `${r._id.op}-${r._id.no}-${r._id.mv}` : `${r._id.op}-${r._id.mv}`);
+      ctx.fillStyle = '#555';
+      ctx.font = `10px ${FONT}`;
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, PAD + LABEL_W - 6, y + ROW_H / 2);
+
+      // bars (visible parts only)
+      const bars = [
+        ['vc', r['VC-lo'], r['VC-hi']],
+        ['va', r['VA-lo'], r['VA-hi']],
+        ['v2', r['V2-lo'], r['V2-hi']],
+        ['v1', r['V1-lo'], r['V1-hi']],
+      ];
+      for (const [p, lo, hi] of bars) {
+        if (hidden.has(p)) continue;
+        const loM = parseNote(lo);
+        const hiM = parseNote(hi);
+        if (loM === null || hiM === null) continue;
+        const x1 = xFor(Math.min(loM, hiM));
+        const x2 = xFor(Math.max(loM, hiM));
+        const bw = Math.max(1.5, x2 - x1);
+        ctx.fillStyle = COLORS[p];
+        ctx.globalAlpha = (onlyPart === p) ? 1 : 0.5;
+        ctx.fillRect(x1, y + 1.5, bw, ROW_H - 3);
+        ctx.globalAlpha = 0.7;
+        ctx.strokeStyle = COLORS[p];
+        ctx.lineWidth = 0.75;
+        ctx.strokeRect(x1, y + 1.5, bw, ROW_H - 3);
+      }
+      ctx.globalAlpha = 1;
+
+      // open-string overlay lines (drawn after bars to overlay subtly)
+      ctx.lineWidth = 0.75;
+      ctx.strokeStyle = '#cccccc';
+      for (const s of OPEN_STRINGS) {
+        const x = xFor(s.midi);
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x, y + ROW_H);
+        ctx.stroke();
+      }
+
+      // pitch labels when only one part is visible
+      if (onlyPart) {
+        const [hiK, loK] = PART_KEYS[onlyPart];
+        const loM = parseNote(r[loK]);
+        const hiM = parseNote(r[hiK]);
+        if (loM !== null && hiM !== null) {
+          const xLo = xFor(Math.min(loM, hiM));
+          const xHi = xFor(Math.max(loM, hiM));
+          const loText = fmtNote(loM <= hiM ? r[loK] : r[hiK]);
+          const hiText = fmtNote(loM <= hiM ? r[hiK] : r[loK]);
+          ctx.font = `bold 10px ${FONT}`;
+          ctx.textBaseline = 'middle';
+
+          ctx.textAlign = 'right';
+          const loW = ctx.measureText(loText).width;
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.97)';
+          ctx.fillRect(xLo - loW - 6, y + 1, loW + 6, ROW_H - 2);
+          ctx.fillStyle = LABEL_COLORS[onlyPart];
+          ctx.fillText(loText, xLo - 3, y + ROW_H / 2);
+
+          ctx.textAlign = 'left';
+          const hiW = ctx.measureText(hiText).width;
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.97)';
+          ctx.fillRect(xHi, y + 1, hiW + 6, ROW_H - 2);
+          ctx.fillStyle = LABEL_COLORS[onlyPart];
+          ctx.fillText(hiText, xHi + 3, y + ROW_H / 2);
+        }
+      }
+
+      y += ROW_H;
+    }
+
+    canvas.toBlob(blob => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const sortTag = sortMode === 'name' ? 'name' : `${sortPart}-${sortMode}`;
+      a.download = `haydn-extremes-${sortTag}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 'image/png');
+  }
+
+  // ---- Palette picker ----
+  function applyPalette(key) {
+    const p = PALETTES[key];
+    if (!p) return;
+    const root = document.documentElement;
+    for (const part of ['v1', 'v2', 'va', 'vc']) {
+      root.style.setProperty(`--color-part-${part}`, p[part]);
+      PART_COLORS[part] = p[part];
+    }
+    // Re-blend open-string colors and redraw the axis labels that use them.
+    for (const s of OPEN_STRINGS) s.color = blendOverWhite(s.parts);
+    renderAxisLabels();
+  }
+  const paletteSelect = document.getElementById('palette-select');
+  for (const [key, p] of Object.entries(PALETTES)) {
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = p.label;
+    paletteSelect.appendChild(opt);
+  }
+  paletteSelect.value = DEFAULT_PALETTE;
+  paletteSelect.addEventListener('change', () => applyPalette(paletteSelect.value));
+
+  // ---- Initial render ----
+  applyPalette(DEFAULT_PALETTE);
+  updateSortButtonsUI();
+  render();
+})();
+</script>
+</body>
+</html>

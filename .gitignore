@@ -1,0 +1,12 @@
+.DS_Store
+
+# Local helper scripts (headless screenshot/PDF runs)
+.claude_*.sh
+
+# Probe artifacts from local verification
+test_*.html
+probe*.png
+
+# Generated exports — keep the source HTML, regenerate outputs locally
+haydn-extremes-*.png
+Haydn String Quartets*.pdf
