@@ -10,3 +10,7 @@ probe*.png
 # Generated exports — keep the source HTML, regenerate outputs locally
 haydn-extremes-*.png
 Haydn String Quartets*.pdf
+
+# `.claude_verify.sh` output dir and its temporary index.html copy
+verify/
+.verify_*.html
