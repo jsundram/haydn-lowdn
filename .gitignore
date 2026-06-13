@@ -7,10 +7,9 @@
 test_*.html
 probe*.png
 
-# Generated exports — keep the source HTML, regenerate outputs locally
+# Hand-generated exports from the in-app buttons (regenerate locally if wanted)
 haydn-extremes-*.png
 Haydn String Quartets*.pdf
 
-# `.claude_verify.sh` output dir and its temporary index.html copy
-verify/
-.verify_*.html
+# snapshot.sh's temporary copy of index.html (the outputs/ dir IS tracked)
+.snapshot_*.html
