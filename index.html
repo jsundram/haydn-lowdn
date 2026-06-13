@@ -854,9 +854,19 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
   bgLines.innerHTML = bgHTML;
 
   const grid = document.getElementById('grid');
-  new ResizeObserver(() => {
+  // Set BOTH dimensions in JS. SVG is a replaced element with an intrinsic
+  // viewBox ratio; if either width or height is left to CSS auto, browsers
+  // (notably mobile Safari) may fall back to the intrinsic ratio and put
+  // every line off-screen. Pinning both removes that whole class of bug.
+  function syncBgLinesSize() {
+    const labelW = parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue('--label-w')
+    ) || 60;
+    bgLines.style.width = Math.max(0, grid.offsetWidth - labelW) + 'px';
     bgLines.style.height = grid.offsetHeight + 'px';
-  }).observe(grid);
+  }
+  new ResizeObserver(syncBgLinesSize).observe(grid);
+  syncBgLinesSize();
   const legendEl = document.querySelector('.legend');
 
   // ---- State ----
