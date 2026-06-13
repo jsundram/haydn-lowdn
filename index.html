@@ -230,11 +230,11 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
 .bg-lines {
   position: absolute;
   top: 0;
-  bottom: 0;
   left: var(--label-w);
-  right: 0;
-  width: auto;
-  height: auto;
+  /* Width pinned by calc; height set in JS to match #grid. Both dimensions
+     must be explicit — otherwise the SVG (a replaced element with 10:1
+     viewBox aspect) computes width = height × 10 from intrinsic ratio. */
+  width: calc(100% - var(--label-w));
   pointer-events: none;
   z-index: 1;
 }
@@ -839,7 +839,11 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
     axis.innerHTML = html;
   }
 
-  // Continuous full-height rules behind the grid (palette-independent)
+  // Continuous full-height rules behind the grid (palette-independent).
+  // An SVG with a viewBox is a replaced element; CSS top:0/bottom:0 alone
+  // leaves its height at the viewBox-derived intrinsic (~94px here), so
+  // lines past that get clipped. We drive height in JS to match the grid
+  // and re-sync whenever the grid resizes (sort change, window resize).
   const bgLines = document.getElementById('bg-lines');
   bgLines.setAttribute('viewBox', `0 0 ${SVG_W} 100`);
   let bgHTML = '';
@@ -850,6 +854,9 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
   bgLines.innerHTML = bgHTML;
 
   const grid = document.getElementById('grid');
+  new ResizeObserver(() => {
+    bgLines.style.height = grid.offsetHeight + 'px';
+  }).observe(grid);
   const legendEl = document.querySelector('.legend');
 
   // ---- State ----
