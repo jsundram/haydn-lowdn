@@ -854,19 +854,23 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
   bgLines.innerHTML = bgHTML;
 
   const grid = document.getElementById('grid');
-  // Set BOTH dimensions in JS. SVG is a replaced element with an intrinsic
-  // viewBox ratio; if either width or height is left to CSS auto, browsers
-  // (notably mobile Safari) may fall back to the intrinsic ratio and put
-  // every line off-screen. Pinning both removes that whole class of bug.
-  function syncBgLinesSize() {
+  // Single source of truth for the bars-area width: grid.offsetWidth - label_w.
+  // The bars (per-row SVGs) get this width naturally via flex layout, but the
+  // axis and bg-lines SVGs are absolutely positioned replaced elements where
+  // CSS auto sizing can fall back to the viewBox intrinsic ratio (notably on
+  // mobile Safari). We pin both their pixel widths to the same value so all
+  // three coordinate systems are guaranteed to scale identically.
+  function syncLineLayerSizes() {
     const labelW = parseFloat(
       getComputedStyle(document.documentElement).getPropertyValue('--label-w')
     ) || 60;
-    bgLines.style.width = Math.max(0, grid.offsetWidth - labelW) + 'px';
+    const w = Math.max(0, grid.offsetWidth - labelW) + 'px';
+    bgLines.style.width = w;
     bgLines.style.height = grid.offsetHeight + 'px';
+    axis.style.width = w;
   }
-  new ResizeObserver(syncBgLinesSize).observe(grid);
-  syncBgLinesSize();
+  new ResizeObserver(syncLineLayerSizes).observe(grid);
+  syncLineLayerSizes();
   const legendEl = document.querySelector('.legend');
 
   // ---- State ----
