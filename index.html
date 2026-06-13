@@ -140,7 +140,7 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
 .axis-wrap {
   position: sticky;
   top: 0;
-  height: 18px;
+  height: 20px;
   margin-bottom: 0;
   background: rgba(250, 250, 250, 0.96);
   z-index: 10;
@@ -148,14 +148,35 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
   -webkit-backdrop-filter: blur(4px);
 }
 .axis-spacer { display: none; }
-.axis-svg {
+/* Labels are HTML spans (CSS-sized, never distorted) over the top of the
+   axis bar; the SVG sits in a thin strip along the bottom holding only the
+   short tick lines that connect each label to the bg-lines below. */
+.axis-labels {
   position: absolute;
   top: 0;
+  left: var(--label-w);
+  right: 0;
+  height: 12px;
+  pointer-events: none;
+  overflow: visible;
+}
+.axis-lbl {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.axis-svg {
+  position: absolute;
   bottom: 0;
   left: var(--label-w);
   right: 0;
   width: auto;
-  height: auto;
+  height: 8px;
   display: block;
   overflow: visible;
 }
@@ -306,6 +327,14 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
   h1 { font-size: 15px; }
   .legend-row { font-size: 10px; gap: 10px; }
   .print-btn { display: none; }
+  /* Bump axis labels so they're at least as tall as the row/opus labels.
+     Stack close-pair labels (D3, A3 — only 2 semitones from their neighbor)
+     onto a second row so they don't visually collide in this narrow viewport. */
+  .axis-wrap { height: 32px; }
+  .axis-labels { height: 26px; }
+  .axis-lbl { font-size: 12px; }
+  .axis-lbl.axis-lbl-r2 { top: 13px; }
+  .axis-svg { height: 6px; }
 }
 
 @media print {
@@ -422,6 +451,7 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
   </div>
   <div class="axis-wrap">
     <div class="axis-spacer"></div>
+    <div id="axis-labels" class="axis-labels" aria-hidden="true"></div>
     <svg id="axis" class="axis-svg" preserveAspectRatio="none" aria-hidden="true"></svg>
   </div>
 </header>
@@ -765,16 +795,19 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
   // Open strings for Cello (C2 G2 D3 A3), Viola (C3 G3 D4 A4), Violin (G3 D4 A4 E5),
   // unique pitches. The `parts` list is in canonical paint order (vc → va → v2 → v1)
   // so the blended color matches the actual on-screen overlap.
+  // `row` controls vertical layering on narrow viewports: pitches only
+  // 2 semitones apart (C3↔D3, G3↔A3) would otherwise overlap visually,
+  // so the second of each tight pair stacks below.
   const OPEN_STRINGS = [
-    { midi: 36, name: 'C2', parts: ['vc'] },
-    { midi: 43, name: 'G2', parts: ['vc'] },
-    { midi: 48, name: 'C3', parts: ['va'] },
-    { midi: 50, name: 'D3', parts: ['vc'] },
-    { midi: 55, name: 'G3', parts: ['va', 'v2', 'v1'] },
-    { midi: 57, name: 'A3', parts: ['vc'] },
-    { midi: 62, name: 'D4', parts: ['va', 'v2', 'v1'] },
-    { midi: 69, name: 'A4', parts: ['va', 'v2', 'v1'] },
-    { midi: 76, name: 'E5', parts: ['v2', 'v1'] },
+    { midi: 36, name: 'C2', parts: ['vc'], row: 1 },
+    { midi: 43, name: 'G2', parts: ['vc'], row: 1 },
+    { midi: 48, name: 'C3', parts: ['va'], row: 1 },
+    { midi: 50, name: 'D3', parts: ['vc'], row: 2 },
+    { midi: 55, name: 'G3', parts: ['va', 'v2', 'v1'], row: 1 },
+    { midi: 57, name: 'A3', parts: ['vc'], row: 2 },
+    { midi: 62, name: 'D4', parts: ['va', 'v2', 'v1'], row: 1 },
+    { midi: 69, name: 'A4', parts: ['va', 'v2', 'v1'], row: 1 },
+    { midi: 76, name: 'E5', parts: ['v2', 'v1'], row: 1 },
   ];
 
   // Resolve CSS-var part colors once, then blend each open-string's color the
@@ -823,20 +856,25 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
     return o;
   }).filter(r => r._id);
 
-  // Render shared pitch axis — colored labels. The vertical rules themselves
-  // are drawn in a single background-layer SVG (#bg-lines) that spans the
-  // whole grid, so they're continuous through opus headings and gaps.
+  // Render the shared pitch axis. Labels are HTML spans (CSS-controlled
+  // font-size, never distorted by the SVG's non-uniform aspect stretch on
+  // narrow viewports); the SVG carries only the short tick lines that
+  // bridge each label to the bg-lines layer below.
   const axis = document.getElementById('axis');
-  axis.setAttribute('viewBox', `0 0 ${SVG_W} 18`);
+  const axisLabels = document.getElementById('axis-labels');
+  axis.setAttribute('viewBox', `0 0 ${SVG_W} 8`);
   function renderAxisLabels() {
-    let html = '';
+    let svgHTML = '';
+    let labelsHTML = '';
     for (const s of OPEN_STRINGS) {
       const x = xFor(s.midi);
-      html +=
-        `<line x1="${x.toFixed(2)}" y1="8" x2="${x.toFixed(2)}" y2="18" class="open-string"/>` +
-        `<text x="${x.toFixed(2)}" y="7" font-size="8" font-weight="600" fill="${s.color}" text-anchor="middle">${s.name}</text>`;
+      const xPct = ((s.midi - MIDI_LOW) / RANGE) * 100;
+      svgHTML += `<line x1="${x.toFixed(2)}" y1="0" x2="${x.toFixed(2)}" y2="8" class="open-string"/>`;
+      const rowCls = s.row === 2 ? ' axis-lbl-r2' : '';
+      labelsHTML += `<span class="axis-lbl${rowCls}" style="left:${xPct.toFixed(2)}%;color:${s.color}">${s.name}</span>`;
     }
-    axis.innerHTML = html;
+    axis.innerHTML = svgHTML;
+    axisLabels.innerHTML = labelsHTML;
   }
 
   // Continuous full-height rules behind the grid (palette-independent).
