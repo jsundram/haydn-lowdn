@@ -31,6 +31,7 @@
   --muted: #666;
   --rule: #d8d8d8;
   --rule-strong: #b8b8b8;
+  --ctrl-h: 22px; /* shared height for toolbar controls — keeps top rows aligned */
 }
 
 * { box-sizing: border-box; }
@@ -50,19 +51,27 @@ body {
 h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
 .subtitle { color: var(--muted); font-size: 11px; margin: 0; }
 
-.legend-row {
+.toolbar {
   display: flex;
-  gap: 16px;
+  gap: 20px;
   flex-wrap: wrap;
-  margin: 10px 0 8px;
+  margin: 12px 0 10px;
   font-size: 11px;
-  align-items: center;
+  align-items: flex-start;
+}
+.toolbar-actions {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  padding-left: 20px;
+  border-left: 1px solid #e6e6e6;
 }
 .legend { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
 .legend-col { display: flex; flex-direction: column; align-items: stretch; gap: 3px; min-width: 88px; }
 .legend-item {
   display: flex; align-items: center; gap: 6px; color: #333;
-  padding: 3px 8px;
+  height: var(--ctrl-h);
+  padding: 0 8px;
   border-radius: 4px;
   cursor: pointer;
   user-select: none;
@@ -112,23 +121,46 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
   display: flex;
   align-items: center;
   gap: 6px;
+  height: var(--ctrl-h);
   font-size: 11px;
   color: #444;
 }
 .palette-picker select {
   font: inherit;
   font-size: 11px;
-  padding: 4px 6px;
+  height: var(--ctrl-h);
+  padding: 0 6px;
   border: 1px solid #ccc;
   border-radius: 4px;
   background: #fff;
   cursor: pointer;
 }
-.print-group { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+/* Display + export columns sit beside the legend. Their two rows
+   (Colors/Print on top, Offset/PNG below) share the same row height as a
+   legend-item, so top rows align across all three groups. */
+.display-controls,
+.print-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+}
+.offset-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--ctrl-h);
+  font-size: 11px;
+  color: #444;
+  cursor: pointer;
+  user-select: none;
+}
+.offset-toggle input { cursor: pointer; margin: 0; }
 .print-btn {
   font: inherit;
   font-size: 11px;
-  padding: 5px 11px;
+  height: var(--ctrl-h);
+  padding: 0 11px;
   background: #fff;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -225,7 +257,7 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
 
 .bar {
   fill-opacity: var(--bar-opacity);
-  transition: fill-opacity 0.12s;
+  transition: fill-opacity 0.12s, y 0.3s ease, height 0.3s ease;
   stroke-width: 0.75px;
   stroke-opacity: 0.7;
   vector-effect: non-scaling-stroke;
@@ -325,8 +357,9 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
   body { padding: 8px; font-size: 11px; }
   :root { --label-w: 54px; --row-h: 13px; }
   h1 { font-size: 15px; }
-  .legend-row { font-size: 10px; gap: 10px; }
-  .print-btn { display: none; }
+  .toolbar { font-size: 10px; gap: 10px; }
+  .toolbar-actions { padding-left: 10px; gap: 10px; }
+  .print-group { display: none; }
   /* Bump axis labels so they're at least as tall as the row/opus labels.
      Stack close-pair labels (D3, A3 — only 2 semitones from their neighbor)
      onto a second row so they don't visually collide in this narrow viewport. */
@@ -343,11 +376,12 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
   .wrap { max-width: none; }
   h1 { font-size: 11px; margin-bottom: 1px; }
   .subtitle { font-size: 8px; }
-  .legend-row { margin: 3px 0; font-size: 8px; gap: 10px; }
+  .toolbar { margin: 3px 0; font-size: 8px; gap: 10px; }
+  .toolbar-actions { display: none; }
   .legend-col { gap: 0; min-width: 0; }
-  .legend-item { padding: 1px 4px; }
+  .legend-item { height: auto; padding: 1px 4px; }
   .swatch { width: 14px; height: 8px; }
-  .print-btn, .sort-row, .palette-picker { display: none; }
+  .print-btn, .sort-row { display: none; }
   :root { --label-w: 42px; --row-h: 9px; }
   .row-label { font-size: 7.5px; padding-right: 3px; }
   .opus-heading { font-size: 8px; padding: 1px 0 0; margin-bottom: 0; border-bottom-width: 0.5px; }
@@ -401,7 +435,7 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
 <header>
   <h1>Haydn String Quartets — Pitch Extremes by Movement</h1>
   <p class="subtitle">Each row is one movement; bars span the lowest to highest written pitch in each part.</p>
-  <div class="legend-row">
+  <div class="toolbar">
     <div class="legend">
       <div class="legend-col">
         <button type="button" class="legend-item" data-part="vc" role="switch" aria-checked="true"><span class="swatch sw-vc"></span><span class="name">Cello</span></button>
@@ -440,13 +474,20 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
         </div>
       </div>
     </div>
-    <div class="palette-picker">
-      <label for="palette-select">Colors</label>
-      <select id="palette-select"></select>
-    </div>
-    <div class="print-group">
-      <button type="button" class="print-btn" data-action="print">Print (1 page)</button>
-      <button type="button" class="print-btn" data-action="png">Export PNG</button>
+    <div class="toolbar-actions">
+      <div class="display-controls">
+        <div class="palette-picker">
+          <label for="palette-select">Colors</label>
+          <select id="palette-select"></select>
+        </div>
+        <label class="offset-toggle" for="offset-toggle">
+          <input type="checkbox" id="offset-toggle"> Offset Bars
+        </label>
+      </div>
+      <div class="print-group">
+        <button type="button" class="print-btn" data-action="print">Print (1 page)</button>
+        <button type="button" class="print-btn" data-action="png">PNG</button>
+      </div>
     </div>
   </div>
   <div class="axis-wrap">
@@ -753,6 +794,18 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
   const RANGE = MIDI_HIGH - MIDI_LOW;
   const SVG_W = 1000;
   const ROW_VB_H = 20;
+  const BAR_VB_H = ROW_VB_H - 2; // full bar height in viewBox units (top/bottom padding = 1 each)
+
+  // Stagger bars vertically by part-index so each part occupies its own
+  // horizontal band — avoids overlap when ranges intersect. Both fractions
+  // are independently tweakable (in units of full bar height):
+  //   BAR_BAND_OFFSET_FRAC — spacing between successive band tops
+  //   BAR_BAND_HEIGHT_FRAC — height of each band
+  const BAR_BAND_OFFSET_FRAC = 1 / 4;
+  const BAR_BAND_HEIGHT_FRAC = 1 / 3;
+  const PART_INDEX = { vc: 0, va: 1, v2: 2, v1: 3 };
+  const BAR_BAND_OFFSET_VB = BAR_VB_H * BAR_BAND_OFFSET_FRAC;
+  const BAR_BAND_HEIGHT_VB = BAR_VB_H * BAR_BAND_HEIGHT_FRAC;
 
   const PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 
@@ -922,6 +975,16 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
   let sortPart = null;     // 'v1' | 'v2' | 'va' | 'vc'  (ignored when sortMode === 'name')
   let pinnedRow = null;
   let pinnedPart = null;
+  let offsetMode = false;  // when true, bars stagger into per-part bands
+
+  // Bar layout in viewBox units. With offset off, each bar fills the row;
+  // with offset on, bars stack into bands per PART_INDEX.
+  function barLayoutVB(p) {
+    if (offsetMode) {
+      return { y: 1 + BAR_BAND_OFFSET_VB * PART_INDEX[p], h: BAR_BAND_HEIGHT_VB };
+    }
+    return { y: 1, h: BAR_VB_H };
+  }
 
   const PART_KEYS = {
     v1: ['V1-hi', 'V1-lo'],
@@ -971,7 +1034,8 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
       const x1 = xFor(minM);
       const x2 = xFor(maxM);
       const w = Math.max(1.5, x2 - x1);
-      bars += `<rect class="bar bar-${p}" x="${x1.toFixed(2)}" y="1" width="${w.toFixed(2)}" height="${ROW_VB_H - 2}"/>`;
+      const { y: barY, h: barH } = barLayoutVB(p);
+      bars += `<rect class="bar bar-${p}" x="${x1.toFixed(2)}" y="${barY.toFixed(2)}" width="${w.toFixed(2)}" height="${barH.toFixed(2)}"/>`;
 
       const loPct = ((minM - MIDI_LOW) / RANGE) * 100;
       const hiPct = ((maxM - MIDI_LOW) / RANGE) * 100;
@@ -1058,19 +1122,29 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
   }
 
   // ---- Hit-testing (snaps to nearest visible part) ----
-  const PART_CENTERS = [
+  // In offset mode, snap to the vertical center of each part's band.
+  // In flat mode bars all overlap full-row, so use even quarters — top is V1
+  // (highest z-order) and bottom is VC, matching the visual z-stack.
+  const PART_CENTERS_FLAT = [
     ['v1', 0.125],
     ['v2', 0.375],
     ['va', 0.625],
     ['vc', 0.875],
   ];
+  const PART_CENTERS_OFFSET = ['vc', 'va', 'v2', 'v1'].map(p => [
+    p,
+    (1 + BAR_BAND_OFFSET_VB * PART_INDEX[p] + BAR_BAND_HEIGHT_VB / 2) / ROW_VB_H,
+  ]);
+  function partCenters() {
+    return offsetMode ? PART_CENTERS_OFFSET : PART_CENTERS_FLAT;
+  }
 
   function partAt(rb, clientY) {
     const rect = rb.getBoundingClientRect();
     const y = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
     let best = null;
     let bestD = Infinity;
-    for (const [p, c] of PART_CENTERS) {
+    for (const [p, c] of partCenters()) {
       if (hidden.has(p)) continue;
       const d = Math.abs(c - y);
       if (d < bestD) { bestD = d; best = p; }
@@ -1182,6 +1256,24 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
       updateSortButtonsUI();
       render();
     });
+  });
+
+  // ---- Offset toggle ----
+  // Updates existing rects in place so CSS transitions on y/height fire.
+  // Re-rendering would destroy the rects and skip the animation.
+  const offsetCheckbox = document.getElementById('offset-toggle');
+  function applyOffsetToBars() {
+    grid.querySelectorAll('rect.bar').forEach(rect => {
+      const cls = Array.from(rect.classList).find(c => /^bar-(v1|v2|va|vc)$/.test(c));
+      if (!cls) return;
+      const { y, h } = barLayoutVB(cls.slice(4));
+      rect.setAttribute('y', y.toFixed(2));
+      rect.setAttribute('height', h.toFixed(2));
+    });
+  }
+  offsetCheckbox.addEventListener('change', () => {
+    offsetMode = offsetCheckbox.checked;
+    applyOffsetToBars();
   });
 
   // ---- Document click clears pin ----
@@ -1306,6 +1398,10 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
     };
     const PART_NAMES = { vc: 'Cello', va: 'Viola', v2: 'Violin II', v1: 'Violin I' };
     const PART_ORDER = ['vc', 'va', 'v2', 'v1'];
+    // Mirror the staggered-bar layout used on screen, in pixel units.
+    const BAR_PX_H = ROW_H - 3;
+    const BAR_OFFSET_PX = BAR_PX_H * BAR_BAND_OFFSET_FRAC;
+    const BAR_HEIGHT_PX = BAR_PX_H * BAR_BAND_HEIGHT_FRAC;
     const FONT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Helvetica Neue", Arial, sans-serif';
 
     const recs = sortedRecords();
@@ -1436,13 +1532,15 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
         const x1 = xFor(Math.min(loM, hiM));
         const x2 = xFor(Math.max(loM, hiM));
         const bw = Math.max(1.5, x2 - x1);
+        const barY = offsetMode ? y + 1.5 + BAR_OFFSET_PX * PART_INDEX[p] : y + 1.5;
+        const barH = offsetMode ? BAR_HEIGHT_PX : BAR_PX_H;
         ctx.fillStyle = COLORS[p];
         ctx.globalAlpha = (onlyPart === p) ? 1 : 0.5;
-        ctx.fillRect(x1, y + 1.5, bw, ROW_H - 3);
+        ctx.fillRect(x1, barY, bw, barH);
         ctx.globalAlpha = 0.7;
         ctx.strokeStyle = COLORS[p];
         ctx.lineWidth = 0.75;
-        ctx.strokeRect(x1, y + 1.5, bw, ROW_H - 3);
+        ctx.strokeRect(x1, barY, bw, barH);
       }
       ctx.globalAlpha = 1;
 
