@@ -793,8 +793,11 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
   const DEFAULT_PALETTE = 'cb_additive';
 
   // Open strings for Cello (C2 G2 D3 A3), Viola (C3 G3 D4 A4), Violin (G3 D4 A4 E5),
-  // unique pitches. The `parts` list is in canonical paint order (vc → va → v2 → v1)
-  // so the blended color matches the actual on-screen overlap.
+  // unique pitches. E6 and E7 are added as extra upper-register reference lines
+  // for axis resolution (not actual open strings) — colored as if blending the
+  // parts that typically reach those pitches. The `parts` list is in canonical
+  // paint order (vc → va → v2 → v1) so the blended color matches the actual
+  // on-screen overlap.
   // `row` controls vertical layering on narrow viewports: pitches only
   // 2 semitones apart (C3↔D3, G3↔A3) would otherwise overlap visually,
   // so the second of each tight pair stacks below.
@@ -808,6 +811,8 @@ h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -0.01em; }
     { midi: 62, name: 'D4', parts: ['va', 'v2', 'v1'], row: 1 },
     { midi: 69, name: 'A4', parts: ['va', 'v2', 'v1'], row: 1 },
     { midi: 76, name: 'E5', parts: ['v2', 'v1'], row: 1 },
+    { midi: 88, name: 'E6', parts: ['v2', 'v1'], row: 1 },
+    { midi: 100, name: 'E7', parts: ['v1'], row: 1 },
   ];
 
   // Resolve CSS-var part colors once, then blend each open-string's color the
